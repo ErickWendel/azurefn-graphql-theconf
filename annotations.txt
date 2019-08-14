@@ -1,0 +1,80 @@
+Serverless applications have been helping many companies to spend less money on infrastructure, application management and performance by passing the responsibility to their 3rd-party provider platforms. The union between GraphQL and Serverless functions is are a great solution to create applications with no worries about scaling, performance, and maintainability. In this talk attendees will see how to start in the Serverless architecture world by use of Azure Functions platform and expose their services using GraphQL and Apollo Server, providing a rich and secure frontend.
+We will take a look at the following topics:
+- Introduction to Azure Functions
+- Benefits and Drawbacks adopting Serverless architectures
+- Adopting GraphQL, Apollo Server and Azure Functions in real scenarios
+- Tips and tricks about production experiences
+
+- what
+- how
+- why
+
+- Introduction
+    - GraphQL Introduction and Benefits
+    - Apollo Server
+    - Legacy restfull APIs to Serverless GraphQL APIs
+
+- Why not Restfull APIs 
+    - API 01 -> methods and submethods
+        - Two Calls for the complete result
+        - Unecessary data
+        - Presentation logic on the backend
+    
+- GraphQL methods
+    - Best thing is QUERY
+        - fragments
+        - subscriptions
+    - partial queries
+    - Self documented
+    - Native caching
+    - Just a API layer, your business logic would be the same
+    - Query -> lists
+    - Mutations -> Commands
+    - Subscriptions -> WebSockets
+
+
+    - Many middlewares
+        - apollo-server 
+        - express 
+        - aws lambda 
+
+    - Converting
+        - change the presentation layer
+        - add the subcall
+        - test 
+
+- Serverless apps vs My own VM
+    - Only the business logic (trigger x action)
+    - Could increase or decrease the cost (don't choose it because the value)
+    - Less work on infrastructure
+    - More work on managing lots of services 
+        - Adding a GraphQL can be the exacly same implementation as a VM 
+    - Converting 
+        - func start 
+        - 
+
+- Pros
+    - exacly the same implementation you had on your service 
+    - no worry about scaling 
+    - zero machine management
+    - Get only what you really need
+    - Empower your consumer giving power to do 
+    - Logging 
+    - Caching 
+    - 
+- Cons 
+    - Error handling 
+    - Documentation
+    - Schemas Management
+    - Middlewares? 
+    - Different way to consume than Restful APIs 
+    - No HTTP Status Code for defining results 
+
+- Conclusion
+    - Productivity can increase 
+    - Security can be better (SQL and No SQL Injection)
+    - Code Reusability throught front and Backend (npm packages)
+    
+- Restful Loved concepts
+        - Patterns
+        
