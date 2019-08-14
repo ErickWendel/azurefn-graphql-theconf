@@ -65,7 +65,7 @@ app
             return res.json(result).status(OK)
 
         } catch (error) {
-            console.error('DEU RUIM', error.stack)
+            console.error('ERROR***', error.stack)
             return res.json({
                 error: getStatusText(INTERNAL_SERVER_ERROR)
             }).status(INTERNAL_SERVER_ERROR)
@@ -97,7 +97,7 @@ app
             return res.json(result).status(OK)
 
         } catch (error) {
-            console.error('DEU RUIM', error.stack)
+            console.error('ERROR***', error.stack)
             return res.json({
                 error: getStatusText(INTERNAL_SERVER_ERROR)
             }).status(INTERNAL_SERVER_ERROR)
@@ -131,7 +131,7 @@ app
             return res.json(result).status(OK)
 
         } catch (error) {
-            console.error('DEU RUIM', error.stack)
+            console.error('ERROR***', error.stack)
             return res.json({
                 error: getStatusText(INTERNAL_SERVER_ERROR)
             }).status(INTERNAL_SERVER_ERROR)
@@ -166,7 +166,7 @@ app
             return res.json(result).status(OK)
 
         } catch (error) {
-            console.error('DEU RUIM', error.stack)
+            console.error('ERROR***', error.stack)
             return res.json({
                 error: getStatusText(INTERNAL_SERVER_ERROR)
             }).status(INTERNAL_SERVER_ERROR)
@@ -203,7 +203,7 @@ app
             return res.json(result).status(OK)
 
         } catch (error) {
-            console.error('DEU RUIM', error.stack)
+            console.error('ERROR***', error.stack)
             return res.json({
                 error: getStatusText(INTERNAL_SERVER_ERROR)
             }).status(INTERNAL_SERVER_ERROR)
@@ -216,7 +216,7 @@ app
                 success: true
             })
         } catch (error) {
-            console.error('DEU RUIM', error.stack)
+            console.error('ERROR***', error.stack)
             return res.json({
                 error: getStatusText(INTERNAL_SERVER_ERROR)
             }).status(INTERNAL_SERVER_ERROR)
