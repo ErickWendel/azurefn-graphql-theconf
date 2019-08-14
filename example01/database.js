@@ -58,7 +58,7 @@ async function generateHeroData(companyIds) {
             name,
             power,
             age,
-            companyId
+            company_id: companyId
         })
         count++
     }
@@ -79,7 +79,7 @@ async function generateHeroSkillData(heroIds) {
         const heroId = heroIds[count]
 
         items.push({
-            heroId,
+            hero_id: heroId,
             description,
         })
         count++
@@ -107,22 +107,22 @@ async function initialize() {
 
     await createTableIfNotExists(HERO_TABLE, (table) => {
         if (!table) return;
-        table.integer('companyId').unsigned().notNullable();
+        table.integer('company_id').unsigned().notNullable();
 
         table.increments('id');
         table.string('name').notNullable();
         table.string('power').notNullable();
         table.integer('age').notNullable();
-        table.foreign('companyId').references('id').inTable(COMPANY_TABLE);
+        table.foreign('company_id').references('id').inTable(COMPANY_TABLE);
     });
 
     await createTableIfNotExists(HEROSKILL_TABLE, (table) => {
         if (!table) return;
-        table.integer('heroId').unsigned().notNullable();
+        table.integer('hero_id').unsigned().notNullable();
 
         table.increments('id');
         table.string('description').notNullable();
-        table.foreign('heroId').references('id').inTable(HERO_TABLE);
+        table.foreign('hero_id').references('id').inTable(HERO_TABLE);
     });
 
     await Promise.all([
@@ -132,18 +132,16 @@ async function initialize() {
     ])
     const companyIds = await generateCompanyData()
     const heroIds = await generateHeroData(companyIds)
+    await generateHeroData(companyIds.reverse())
     await generateHeroSkillData(heroIds)
+    await generateHeroSkillData(heroIds.reverse())
 
 }
 
 
 // ---
 class Database {
-    constructor() {
-        this.company = knex(COMPANY_TABLE)
-        this.hero = knex(HERO_TABLE)
-        this.heroSkill = knex(HEROSKILL_TABLE)
-    }
+    constructor() {}
     async create(company, hero, power) {
         return knex(COMPANY_TABLE)
     }
@@ -161,17 +159,17 @@ class Database {
 
 
     async listHeroesSkillFromCompany(query, projection, skip, limit) {
-        return this.company
-            .innerJoin(HERO_TABLE, `${HERO_TABLE}.companyId`, `${COMPANY_TABLE}.id`)
-            .innerJoin(HEROSKILL_TABLE, `${HEROSKILL_TABLE}.heroId`, `${HERO_TABLE}.id`)
+        return knex.from(COMPANY_TABLE)
             .where(query)
             .select(projection)
+            .innerJoin(HERO_TABLE, `${HERO_TABLE}.company_id`, `${COMPANY_TABLE}.id`)
+            .innerJoin(HEROSKILL_TABLE, `${HEROSKILL_TABLE}.hero_id`, `${HERO_TABLE}.id`)
             .offset(skip)
             .limit(limit)
     }
     async listHeroesFromCompany(query, projection, skip, limit) {
-        return this.company
-            .innerJoin(HERO_TABLE, `${COMPANY_TABLE}.id`, `${HERO_TABLE}.companyId`)
+        return knex.from(COMPANY_TABLE)
+            .innerJoin(HERO_TABLE, `${COMPANY_TABLE}.id`, `${HERO_TABLE}.company_id`)
             .where(query)
             .select(projection)
             .offset(skip)
@@ -180,7 +178,7 @@ class Database {
     }
 
     async listCompany(query, projection, skip, limit) {
-        return this.company.where(query).select(projection).offset(skip).limit(limit)
+        return knex.from(COMPANY_TABLE).where(query).select(projection).offset(skip).limit(limit)
     }
 }
 

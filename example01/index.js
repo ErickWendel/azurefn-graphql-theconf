@@ -43,6 +43,33 @@ app
         }
 
     })
+    .get('/company/:companyid', validator.query(getHeroesSchema), async (req, res) => {
+        const {
+            skip,
+            limit
+        } = req.query
+
+        const {
+            companyid
+        } = req.params
+
+        try {
+            const result = await db.listCompany({
+                'id': companyid
+            }, [
+                'company.name as company',
+                'company.id as id'
+            ], skip, limit)
+
+            return res.json(result).status(OK)
+
+        } catch (error) {
+            console.error('DEU RUIM', error.stack)
+            return res.json({
+                error: getStatusText(INTERNAL_SERVER_ERROR)
+            }).status(INTERNAL_SERVER_ERROR)
+        }
+    })
     .get('/company/:companyid/hero', validator.query(getHeroesSchema), async (req, res) => {
         const {
             skip,
@@ -124,6 +151,43 @@ app
             const result = await db.listHeroesSkillFromCompany({
                 'company.id': companyid,
                 'hero.id': heroid
+            }, [
+                'hero.id',
+                'hero.name as heroname',
+                'hero.power as heropower',
+                'hero.age as heroage',
+                'hero_skill.description as skilldescription',
+                'hero_skill.id as skillid',
+
+                'company.name as company'
+            ], skip, limit)
+
+            return res.json(result).status(OK)
+
+        } catch (error) {
+            console.error('DEU RUIM', error.stack)
+            return res.json({
+                error: getStatusText(INTERNAL_SERVER_ERROR)
+            }).status(INTERNAL_SERVER_ERROR)
+        }
+    })
+    .get('/company/:companyid/hero/:heroid/skill/:skillid', validator.query(getHeroesSchema), async (req, res) => {
+        const {
+            skip,
+            limit
+        } = req.query
+
+        const {
+            companyid,
+            heroid,
+            skillid
+        } = req.params
+
+        try {
+            const result = await db.listHeroesSkillFromCompany({
+                'company.id': companyid,
+                'hero.id': heroid,
+                'hero_skill.id': skillid
             }, [
                 'hero.id',
                 'hero.name as heroname',
