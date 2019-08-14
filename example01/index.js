@@ -25,7 +25,8 @@ const validator = createValidator()
 const db = new Database()
 const port = process.env.PORT || 3000
 
-app.use(BodyParser())
+app.use(BodyParser.urlencoded())
+
 app
     .get('/company', validator.query(getHeroesSchema), async (req, res) => {
         const {
@@ -208,32 +209,18 @@ app
             }).status(INTERNAL_SERVER_ERROR)
         }
     })
-// .get('/company/:companyid/hero/:heroid/skill/:skillid', validator.query(getHeroesSchema), async (req, res) => {
-//     return res.send(`${JSON.stringify(req.params)}`).status(OK)
-// })
-
-// .post('/heroes', validator.body(postHeroesSchema), async (req, res) => {
-//     return res.send({
-//         result: `${JSON.stringify(req.body)}`
-//     }).status(CREATED)
-// })
-// .put('/heroes/:id', validator.body(putHeroesSchema), async (req, res) => {
-//     return res.send(`${JSON.stringify(req.body)}`).status(OK)
-
-// })
-// .delete('/heroes/:id', async (req, res) => {
-//     return res.send(`${JSON.stringify(req.params)}`).status(OK)
-
-// })
+    .get('/seed', async (req, res) => {
+        try {
+            await initialize()
+            return res.send({
+                success: true
+            })
+        } catch (error) {
+            console.error('DEU RUIM', error.stack)
+            return res.json({
+                error: getStatusText(INTERNAL_SERVER_ERROR)
+            }).status(INTERNAL_SERVER_ERROR)
+        }
+    })
 
 app.listen(port, _ => console.log(`running at ${port}`))
-
-async function main() {
-    // const db = new Database()
-    // console.log(await db.listhSkillHerosFromCompany({
-    //     // 'company.name': 'Prohaska and Sons'
-    // }, ['hero.name as hero', 'company.name as company', 'hero_skill.description as skill'], 0, 2))
-
-    // await initialize()
-}
-main()
