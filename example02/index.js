@@ -1,289 +1,170 @@
-const Express = require('express')
+const express = require('express');
 const {
-    CREATED,
-    OK,
-    INTERNAL_SERVER_ERROR,
-    getStatusText
-} = require('http-status-codes')
-const BodyParser = require('body-parser')
-const app = Express()
-const swaggerJsdoc = require('swagger-jsdoc');
-
-const options = {
-    swaggerDefinition: {
-        // Like the one described here: https://swagger.io/specification/#infoObject
-        info: {
-            title: 'Erick Wendel - RestfullAPI',
-            version: '1.0.0',
-            description: 'Web API Example for sub-resources',
-        },
-    },
-    // List of files to be processes. You can also set globs './routes/*.js'
-    apis: ['index.js'],
-};
-
-const specs = swaggerJsdoc(options);
-const swaggerUi = require('swagger-ui-express');
-
+    ApolloServer,
+    gql
+} = require('apollo-server-express');
+const {
+    graphqlMongodbProjection
+} = require('graphql-mongodb-projection')
 
 const {
-    createValidator
-} = require('express-joi-validation')
-const {
-    getHeroesSchema,
-    postHeroesSchema,
-    putHeroesSchema
-} = require('./validators')
-
-const {
-    initialize,
-    Database
+    Database,
+    initialize
 } = require('./database')
-
-const validator = createValidator()
 const db = new Database()
 const port = process.env.PORT || 3000
+// initialize()
 
-app.use(BodyParser.urlencoded())
+const typeDefs = gql `
+type Skill {
+    id: Int
+    description: String
+}
+type Hero {
+    id: Int
+    name: String
+    power: String
+    age: Int
+    skill(id: Int, skip: Int = 0, limit: Int = 10): [Skill]
+}
+type Company {
+  id: Int
+  description: String
+  hero(id: Int, skip: Int = 0, limit: Int = 10): [Hero]
+}
+
+type Query {
+  getCompany(id: Int, skip: Int = 0, limit: Int = 10): [Company] 
+}
+
+schema {
+  query: Query
+}
+`;
 
 
-/**
- * @swagger
- * /company:
- *    get:
- *      description: This should return all companies
- */
-app
-    .get('/company', validator.query(getHeroesSchema), async (req, res) => {
-        const {
-            skip,
-            limit
-        } = req.query
-        try {
-            const result = await db.listCompany({}, ['name', 'description', 'id'], skip, limit)
-            return res.json(result).status(OK)
+// Provide resolver functions for your schema fields
+const resolvers = {
+    Hero: {
+        async skill(company, args, context) {
+            const {
+                skip,
+                limit,
+                heroId,
+                id
+            } = args
 
-        } catch (error) {
-            return res.json({
-                error: getStatusText(INTERNAL_SERVER_ERROR)
-            }).status(INTERNAL_SERVER_ERROR)
-        }
+            const result = await context.Company.findHeroSkill(company.id, heroId, id, skip, limit)
 
-    })
-    /**
-     * @swagger
-     * /company/:companyid:
-     *    get:
-     *      description: This should a company
-     */
-    .get('/company/:companyid', validator.query(getHeroesSchema), async (req, res) => {
-        const {
-            skip,
-            limit
-        } = req.query
-
-        const {
-            companyid
-        } = req.params
-
-        try {
-            const result = await db.listCompany({
-                'id': companyid
-            }, [
-                'company.name as company',
-                'company.id as id'
-            ], skip, limit)
-
-            return res.json(result).status(OK)
-
-        } catch (error) {
-            console.error('ERROR***', error.stack)
-            return res.json({
-                error: getStatusText(INTERNAL_SERVER_ERROR)
-            }).status(INTERNAL_SERVER_ERROR)
-        }
-    })
-    /**
-     * @swagger
-     * /company/:companyid/hero:
-     *    get:
-     *      description: This should return all company's heroes
-     */
-    .get('/company/:companyid/hero', validator.query(getHeroesSchema), async (req, res) => {
-        const {
-            skip,
-            limit
-        } = req.query
-
-        const {
-            companyid
-        } = req.params
-
-        try {
-            const result = await db.listHeroesFromCompany({
-                'company.id': companyid
-            }, [
-                'hero.name as heroname',
-                'hero.power as heropower',
-                'hero.age as heroage',
-                'hero.id as heroid',
-
-                'company.name as company',
-                'company.id as id'
-            ], skip, limit)
-
-            return res.json(result).status(OK)
-
-        } catch (error) {
-            console.error('ERROR***', error.stack)
-            return res.json({
-                error: getStatusText(INTERNAL_SERVER_ERROR)
-            }).status(INTERNAL_SERVER_ERROR)
-        }
-    })
-    /**
-     * @swagger
-     * /company/:companyid/hero/:heroid:
-     *    get:
-     *      description: This should return a hero from a company
-     */
-    .get('/company/:companyid/hero/:heroid', validator.query(getHeroesSchema), async (req, res) => {
-        const {
-            skip,
-            limit
-        } = req.query
-
-        const {
-            companyid,
-            heroid,
-        } = req.params
-
-        try {
-            const result = await db.listHeroesSkillFromCompany({
-                'company.id': companyid,
-                'hero.id': heroid
-            }, [
-                'hero.name as heroname',
-                'hero.power as heropower',
-                'hero.age as heroage',
-                // 'hero.id as heroid',
-                'hero_skill.description as skill',
-
-                'company.name as company'
-            ], skip, limit)
-
-            return res.json(result).status(OK)
-
-        } catch (error) {
-            console.error('ERROR***', error.stack)
-            return res.json({
-                error: getStatusText(INTERNAL_SERVER_ERROR)
-            }).status(INTERNAL_SERVER_ERROR)
-        }
-    })
-    /**
-     * @swagger
-     * /company/:companyid/hero/:heroid/skill:
-     *    get:
-     *      description: This should return a skills of a hero in a company
-     */
-    .get('/company/:companyid/hero/:heroid/skill', validator.query(getHeroesSchema), async (req, res) => {
-        const {
-            skip,
-            limit
-        } = req.query
-
-        const {
-            companyid,
-            heroid,
-        } = req.params
-
-        try {
-            const result = await db.listHeroesSkillFromCompany({
-                'company.id': companyid,
-                'hero.id': heroid
-            }, [
-                'hero.id',
-                'hero.name as heroname',
-                'hero.power as heropower',
-                'hero.age as heroage',
-                'hero_skill.description as skilldescription',
-                'hero_skill.id as skillid',
-
-                'company.name as company'
-            ], skip, limit)
-
-            return res.json(result).status(OK)
-
-        } catch (error) {
-            console.error('ERROR***', error.stack)
-            return res.json({
-                error: getStatusText(INTERNAL_SERVER_ERROR)
-            }).status(INTERNAL_SERVER_ERROR)
-        }
-    })
-    /**
-     * @swagger
-     * /company/:companyid:
-     *    get:
-     *      description: This should a skills of a hero in a specific company
-     */
-    .get('/company/:companyid/hero/:heroid/skill/:skillid', validator.query(getHeroesSchema), async (req, res) => {
-        const {
-            skip,
-            limit
-        } = req.query
-
-        const {
-            companyid,
-            heroid,
-            skillid
-        } = req.params
-
-        try {
-            const result = await db.listHeroesSkillFromCompany({
-                'company.id': companyid,
-                'hero.id': heroid,
-                'hero_skill.id': skillid
-            }, [
-                'hero.id',
-                'hero.name as heroname',
-                'hero.power as heropower',
-                'hero.age as heroage',
-                'hero_skill.description as skilldescription',
-                'hero_skill.id as skillid',
-
-                'company.name as company'
-            ], skip, limit)
-
-            return res.json(result).status(OK)
-
-        } catch (error) {
-            console.error('ERROR***', error.stack)
-            return res.json({
-                error: getStatusText(INTERNAL_SERVER_ERROR)
-            }).status(INTERNAL_SERVER_ERROR)
-        }
-    })
-    /**
-     * @swagger
-     * /seed/:
-     *    get:
-     *      description: generate data
-     */
-    .get('/seed', async (req, res) => {
-        try {
-            await initialize()
-            return res.send({
-                success: true
+            return result.map(item => {
+                return {
+                    description: item.skilldescription,
+                    id: item.id
+                }
             })
-        } catch (error) {
-            console.error('ERROR***', error.stack)
-            return res.json({
-                error: getStatusText(INTERNAL_SERVER_ERROR)
-            }).status(INTERNAL_SERVER_ERROR)
-        }
-    })
 
-app.use('/', swaggerUi.serve, swaggerUi.setup(specs));
-app.listen(port, _ => console.log(`running at ${port}`))
+        },
+    },
+    Company: {
+        async hero(company, args, context) {
+            const {
+                skip,
+                limit,
+                id
+            } = args
+
+            const result = await context.Company.findHero(company.id, id, skip, limit)
+            return result.map(item => {
+                return {
+                    ...item,
+                    heroId: item.id
+                }
+            })
+        },
+    },
+    Query: {
+        async getCompany(root, args, context, info) {
+            const {
+                skip,
+                limit,
+                id
+            } = args
+            return context.Company.find(id, skip, limit);
+        },
+    },
+}
+
+const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: {
+        Company: {
+
+            find(id, skip, limit) {
+                const query = !id ? {} : {
+                    id: id
+                }
+                return db.listCompany(query, ['name', 'description', 'id'], skip, limit)
+            },
+            findHero(companyid, heroId, skip, limit) {
+                let query = {
+                    'company.id': companyid
+                }
+                if (heroId) {
+                    query = {
+                        ...query,
+                        'hero.id': heroId
+                    }
+                }
+                return db.listHeroesFromCompany(query, [
+                    'hero.name as name',
+                    'hero.power as power',
+                    'hero.age as age',
+                    'hero.id as id',
+
+                    'company.name as company',
+                    'company.id as id'
+                ], skip, limit)
+            },
+            findHeroSkill(companyId, heroId, skillId, skip, limit) {
+                let query = {
+                    'company.id': companyId
+                }
+                if (heroId) {
+                    query = {
+                        ...query,
+                        'hero.id': heroId
+                    }
+                }
+                if (skillId) {
+                    query = {
+                        ...query,
+                        'hero_skill.id': skillId
+                    }
+                }
+                return db.listHeroesSkillFromCompany(query, [
+                    'hero.id',
+                    'hero.name as heroname',
+                    'hero.power as heropower',
+                    'hero.age as heroage',
+
+                    'hero_skill.description as skilldescription',
+                    'hero_skill.id as skillid',
+
+                    'company.name as company'
+                ], skip, limit)
+            }
+        }
+    }
+});
+
+const app = express();
+server.applyMiddleware({
+    app
+});
+
+app.listen({
+        port: port
+    }, () =>
+    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+);
