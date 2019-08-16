@@ -19,3 +19,5 @@ az functionapp create \
  --storage-account ewsa007
 
 func new --name graphql-az-app --template "HttpTrigger"
+
+func azure functionapp publish graphql-serverless-app

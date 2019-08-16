@@ -78,3 +78,6 @@ We will take a look at the following topics:
 - Restful Loved concepts
         - Patterns
         
+https://hackernoon.com/advanced-querying-with-graphql-and-express-8cf2fd05f5ea
+https://spin.atomicobject.com/2018/01/31/create-graphql-api/
+https://spin.atomicobject.com/2018/03/09/graphql-api-resolvers/
