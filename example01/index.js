@@ -7,6 +7,25 @@ const {
 } = require('http-status-codes')
 const BodyParser = require('body-parser')
 const app = Express()
+const swaggerJsdoc = require('swagger-jsdoc');
+
+const options = {
+    swaggerDefinition: {
+        // Like the one described here: https://swagger.io/specification/#infoObject
+        info: {
+            title: 'Erick Wendel - RestfullAPI',
+            version: '1.0.0',
+            description: 'Web API Example for sub-resources',
+        },
+    },
+    // List of files to be processes. You can also set globs './routes/*.js'
+    apis: ['index.js'],
+};
+
+const specs = swaggerJsdoc(options);
+const swaggerUi = require('swagger-ui-express');
+
+
 const {
     createValidator
 } = require('express-joi-validation')
@@ -27,6 +46,13 @@ const port = process.env.PORT || 3000
 
 app.use(BodyParser.urlencoded())
 
+
+/**
+ * @swagger
+ * /company:
+ *    get:
+ *      description: This should return all companies
+ */
 app
     .get('/company', validator.query(getHeroesSchema), async (req, res) => {
         const {
@@ -44,6 +70,12 @@ app
         }
 
     })
+    /**
+     * @swagger
+     * /company/:companyid:
+     *    get:
+     *      description: This should a company
+     */
     .get('/company/:companyid', validator.query(getHeroesSchema), async (req, res) => {
         const {
             skip,
@@ -71,6 +103,12 @@ app
             }).status(INTERNAL_SERVER_ERROR)
         }
     })
+    /**
+     * @swagger
+     * /company/:companyid/hero:
+     *    get:
+     *      description: This should return all company's heroes
+     */
     .get('/company/:companyid/hero', validator.query(getHeroesSchema), async (req, res) => {
         const {
             skip,
@@ -103,6 +141,12 @@ app
             }).status(INTERNAL_SERVER_ERROR)
         }
     })
+    /**
+     * @swagger
+     * /company/:companyid/hero/:heroid:
+     *    get:
+     *      description: This should return a hero from a company
+     */
     .get('/company/:companyid/hero/:heroid', validator.query(getHeroesSchema), async (req, res) => {
         const {
             skip,
@@ -137,6 +181,12 @@ app
             }).status(INTERNAL_SERVER_ERROR)
         }
     })
+    /**
+     * @swagger
+     * /company/:companyid/hero/:heroid/skill:
+     *    get:
+     *      description: This should return a skills of a hero in a company
+     */
     .get('/company/:companyid/hero/:heroid/skill', validator.query(getHeroesSchema), async (req, res) => {
         const {
             skip,
@@ -172,6 +222,12 @@ app
             }).status(INTERNAL_SERVER_ERROR)
         }
     })
+    /**
+     * @swagger
+     * /company/:companyid:
+     *    get:
+     *      description: This should a skills of a hero in a specific company
+     */
     .get('/company/:companyid/hero/:heroid/skill/:skillid', validator.query(getHeroesSchema), async (req, res) => {
         const {
             skip,
@@ -209,6 +265,12 @@ app
             }).status(INTERNAL_SERVER_ERROR)
         }
     })
+    /**
+     * @swagger
+     * /seed/:
+     *    get:
+     *      description: generate data
+     */
     .get('/seed', async (req, res) => {
         try {
             await initialize()
@@ -223,4 +285,5 @@ app
         }
     })
 
+app.use('/', swaggerUi.serve, swaggerUi.setup(specs));
 app.listen(port, _ => console.log(`running at ${port}`))
